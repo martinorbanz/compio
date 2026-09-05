@@ -1,0 +1,42 @@
+{
+  "name": "@compio/ui-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tailwind-preset.cjs": "./tailwind-preset.cjs"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-menubar": "^1.1.4",
+    "@radix-ui/react-popover": "^1.1.4",
+    "@radix-ui/react-slider": "^1.2.2",
+    "@radix-ui/react-tooltip": "^1.1.6"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@compio/config-eslint": "workspace:*",
+    "@compio/config-typescript": "workspace:*",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.18.0",
+    "jsdom": "^25.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vite-tsconfig-paths": "^5.1.0",
+    "vitest": "^3.0.0"
+  }
+}

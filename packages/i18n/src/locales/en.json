@@ -1,0 +1,74 @@
+{
+  "app": {
+    "name": "Compio"
+  },
+  "menu": {
+    "file": "File",
+    "edit": "Edit",
+    "image": "Image",
+    "layer": "Layer",
+    "select": "Select",
+    "view": "View"
+  },
+  "file": {
+    "new": "New Canvas…",
+    "open": "Open Image…",
+    "openComposition": "Open Composition…",
+    "save": "Save Composition",
+    "exportPng": "Export as PNG…",
+    "exportJson": "Export as Compio JSON…"
+  },
+  "edit": {
+    "undo": "Undo",
+    "redo": "Redo",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "delete": "Delete"
+  },
+  "view": {
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "fitToWindow": "Fit to Window",
+    "toggleDarkMode": "Toggle Dark Mode"
+  },
+  "tools": {
+    "Move": "Move",
+    "Scale": "Scale",
+    "Rotate": "Rotate",
+    "Geometric Selection": "Geometric Selection",
+    "Brush": "Brush",
+    "Eraser": "Eraser",
+    "Text": "Text"
+  },
+  "effects": {
+    "Brightness/Contrast": "Brightness/Contrast"
+  },
+  "panels": {
+    "layers": "Layers",
+    "toolOptions": "Tool Options",
+    "properties": "Properties"
+  },
+  "layer": {
+    "opacity": "Opacity",
+    "blendMode": "Blend Mode",
+    "visible": "Visible",
+    "locked": "Locked",
+    "addLayer": "Add Layer",
+    "deleteLayer": "Delete Layer"
+  },
+  "dialogs": {
+    "brightnessContrast": {
+      "title": "Brightness/Contrast",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "apply": "Apply",
+      "cancel": "Cancel"
+    }
+  },
+  "common": {
+    "close": "Close",
+    "ok": "OK",
+    "cancel": "Cancel"
+  }
+}

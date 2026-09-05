@@ -1,0 +1,27 @@
+<xml>
+    <!-- Code Style -->
+    <ul topic="code style">
+        <li>Use speaking variables even in iterations even in iterator functions. They can be brief
+            like <code>pluginUiTriggers.map(trigger =&gt; ...)</code> but not 1 or 2 characters</li>
+        <li>Favour iterators over loops. Use loops only when there is a reason, do not use classic for loops</li>
+        <li>Favour a single options argument object over multiple parameters</li>
+        <li>Use early returns to reduce nesting</li>
+
+        <li>Leave blank lines between blocks</li>
+    </ul>
+    <!-- Application directives -->
+    <ul topic="application directives">
+        <li>we need an undo history. consider building diff data for the composition, but you may suggest other ways.</li>
+        <li>the main tool ui needs a color picker</li>
+        <li>with active selection, effects must be only applied to the selected part of the active layer</li>
+        <li>layers should be selectable by pointer event in the renderer</li>
+        <li>paint strokes look good, but transformed layers need to compensate when painting. 
+            consider these options:
+            1. transform the stroke to match the layer transform
+            2. build the layer itself as a composition with the image data at the bottom.
+            3. suggest improvements
+        </li>
+        <li>we need to be able to zoom in/out on the renderer</li>
+        <li>the transform bounding box should be visible outside the rendering canvas</li>
+    </ul>
+</xml>

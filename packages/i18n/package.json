@@ -1,0 +1,27 @@
+{
+  "name": "@compio/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "i18next": "^24.2.0",
+    "react-i18next": "^15.4.0"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@compio/config-eslint": "workspace:*",
+    "@compio/config-typescript": "workspace:*",
+    "@types/react": "^19.0.0",
+    "eslint": "^9.18.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

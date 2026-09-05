@@ -1,0 +1,46 @@
+{
+  "name": "compio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@compio/domain-composition": "workspace:*",
+    "@compio/domain-events": "workspace:*",
+    "@compio/domain-plugin-api": "workspace:*",
+    "@compio/export-core": "workspace:*",
+    "@compio/i18n": "workspace:*",
+    "@compio/plugin-registry": "workspace:*",
+    "@compio/plugins-effects-core": "workspace:*",
+    "@compio/plugins-tools-core": "workspace:*",
+    "@compio/renderer-core": "workspace:*",
+    "@compio/ui-kit": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@compio/config-eslint": "workspace:*",
+    "@compio/config-typescript": "workspace:*",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.18.0",
+    "jsdom": "^25.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0",
+    "vite-tsconfig-paths": "^5.1.0",
+    "vitest": "^3.0.0"
+  }
+}

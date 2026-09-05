@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": false,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@compio/domain-composition": ["packages/domain-composition/src/index.ts"],
+      "@compio/domain-plugin-api": ["packages/domain-plugin-api/src/index.ts"],
+      "@compio/domain-events": ["packages/domain-events/src/index.ts"],
+      "@compio/renderer-core": ["packages/renderer-core/src/index.ts"],
+      "@compio/plugin-registry": ["packages/plugin-registry/src/index.ts"],
+      "@compio/plugins-tools-core": ["packages/plugins-tools-core/src/index.ts"],
+      "@compio/plugins-effects-core": ["packages/plugins-effects-core/src/index.ts"],
+      "@compio/export-core": ["packages/export-core/src/index.ts"],
+      "@compio/ui-kit": ["packages/ui-kit/src/index.ts"],
+      "@compio/i18n": ["packages/i18n/src/index.ts"]
+    }
+  }
+}

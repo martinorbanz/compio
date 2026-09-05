@@ -1,0 +1,4 @@
+{
+  "extends": "../config-typescript/node-library.json",
+  "include": ["src"]
+}

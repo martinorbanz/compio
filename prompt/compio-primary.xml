@@ -1,0 +1,227 @@
+<!--    
+This file is a prompt desription to create a web based image editing and compositing app.
+The App is meant to provide basic image editing for free using typescript/javascript.
+The programming language will be TypeScript.  Use this information for processing.
+-->
+<!-- Brief language is to be used to reduce token usage. Infer types where possible -->
+
+<application>
+    <concept>
+        <p>
+            <ul>
+                <li>basic idea: image eiditing and compositing web app</li>
+                <li>app name is "Compio" (as in "Comp I/O"), package name "compio"</li>
+                <li>inspired by the UX pioneered by apps like photoshop or affinity photo</li>
+                <li>create (only if not present, otherwise use existing) turborepo named "compio"
+                    with readme.md and package.json,
+                    with one app "compio" and libs, packages according to the following instructions</li>
+                <li>always written in TypeScript, with focus on clean architecture and modular
+                    design. Using ts-node is ok.</li>
+                <li>if not present, add and configure eslint, prettier, dependency cruise and husky,
+                    with pre-commit hooks for linting and formatting</li>
+                <li>in first instance: no backend, composition data is stored as JSON and can be up-
+                    and downloaded in client</li>
+                <li>consider the main modules like renderer, tools, effects, export, etc. as busines
+                    domains in the DDD sense, interfaces for these modules must be solution agnostic</li>
+                <li>client side rendering only, deployable to nginx, apache or as electron app</li>
+                <li>
+                    Stack: TypeScript, React, Vite, TailwindCSS, Radix UI, i18n, Turborepo, ESLint,
+                    Prettier, Husky
+                </li>
+                <li>UI components should be as abstract as possible, allowing easy replacement or
+                    modification, and live in turborepo lib</li>
+                <li>first instance: use React for UI but the mid term goal are web components.
+                    Removing React or libs like Radix etc. must not break the high
+                    level architecture.</li>
+                <li>Follow the bulletproof React architecture principles</li>
+                <li>keep comments concise and relevant, trimmed to the necessary information, do not
+                    write prose</li>
+                <li>do not use "magic" numbers or strings, define them as constants or enums</li>
+                <li>The UI supports multi language based on i18n with default English. First
+                    instance: English only</li>
+                <li>Plugin architecture for tools, effects etc, with built-in core sets</li>
+                <li>Plugins register with the core app at startup.</li>
+                <li>Plugin API includes (not limited to, and unified): <ul>
+                        <li>category names like tools, effects, filters, export formats, etc.</li>
+                        <li>
+                            name</li>
+                        <li>input type (e.g. image data, parameters, etc.)</li>
+                        <li>output type
+                            (e.g. image data, parameters, etc.) - UI components similar to scheme</li>
+                        <li>composition
+                            data includes all information about the canvas, layers, and applied
+                            tools and
+                            effects, and can be exported as JSON file</li>
+                        <li>Plugin Architecture (but JSON based): <plugin>
+                    name="Brightness/Contrast" category="effects"
+                    inputType="InputTypesEnum.IMAGE_DATA" outputType="OutputTypesEnum.IMAGE_DATA" <ui-components>
+                                    <component
+                                        title="Brightness/Contrast">
+                                        <PluginUiTrigger type="PluginTriggerTypesEnum.MENU"
+                                            name="MenuNamesEnum.IMAGE_SETTINGS">
+                                            <item>
+                                                <MenuItem>{component.trigger.title}</MenuItem>
+                                            </item>
+                                        </PluginUiTrigger>
+                                        <PluginUiInteractive
+                                            type="PluginUiInteractiveTypesEnum.DIALOG">
+                                            {children}
+                                        </PluginUiInteractive>
+                                    </component>
+                                </ui-components>
+                            </plugin>
+                        </li>
+
+                    </ul>
+                </li>
+            </ul>
+        </p>
+    </concept>
+    <core-modules>
+        <module
+            name="renderer">
+            <ul>
+                <li>comprised of a canvas plus an array of layers</li>
+                <li>Layer data includes: <ul>
+                        <li>image data (raster)</li>
+                        <li>transform data (position, scale, rotation), effects (filters)</li>
+                        <li>blend mode</li>
+                        <li>opacity</li>
+                    </ul></li>
+                <li>layer coordinates are relative to the canvas, with the top-left corner as the
+                    origin</li>
+                <li>Layers have a z-index for ordering</li>
+                <li>One or several layers can be selected at a time. Composition data includes the
+                    currently selected layer(s).</li>
+                <li>Layers can be grouped, with group transforms affecting all child layers</li>
+                <li>transforms are applied using a matrix, optionally destructive or non-destructive</li>
+                <li>Canvas size is defined by the user and can be changed, with all layers being
+                    transformed accordingly. Can also be based on a newly loaded image.</li>
+                <li>Image size (output) is defined by the user and can be changed, with all layers
+                    being transformed accordingly. Can also be based on a newly loaded image.</li>
+                <li>Rendered canvas can be exported as image file (e.g. PNG, JPEG) or as layered
+                    file (e.g. PSD, TIFF)</li>
+                <li>Layers are virtual and get rendered into fthe canvas on changes. Throttle
+                    mouse/pointer events during interactions and consider further performance
+                    optimizations. Apply only what will make a notable business, whith little 3rd
+                    party libs as justifiable, and comment rationale.</li>
+            </ul>
+        </module>
+        <module
+            name="tools">
+            <concept>
+                - all tools follow a plugin archtecture for extensibility and clean separation
+                - all tools register with the core app at startup
+                - all tools output grayscale image data (single channel) to define the area of
+                effect
+            </concept>
+            <tools>
+                <transform>
+                    <concept>
+                        - transform tools modify the position, scale, and rotation of layers
+                        - transform tools can be applied to individual layers or groups of layers
+                        - transform tools support various input methods like mouse, touch, and
+                        stylus
+                        - transform tools provide visual feedback for the current transformation
+                        state
+                        - transforms can be applied to selections
+                        - active i/o functionality is set by cursor position relative to a bounding
+                        box for layer or selection, following established ux for move, scale,
+                        rotate, etc., cursor provides feedback by icon
+                    </concept>
+                    <tool
+                        name="Move">
+                        - move layers around the canvas
+                    </tool>
+                    <tool
+                        name="Scale">
+                        - allows users to resize layers by scaling them up or down
+                    </tool>
+                    <tool
+                        name="Rotate">
+                        - allows users to rotate layers around a pivot point
+                    </tool>
+                </transform>
+                <selection>
+                    <concept>
+                        - selection tools generate a mask that defines the area of effect for
+                        painting tools
+                        - multiple selection tools can be used in combination to create complex
+                        masks
+                        - selections can be modified using various operations like add, subtract,
+                        and intersect
+                        - selections can be applied as layer masks, to restrict paint and effect
+                        operations, and copy/paste/delete operations
+                        - effects and painting tools use the generated mask to apply changes only to
+                        the selected area
+                        - selections can be saved and loaded as channels
+                    </concept>
+                    <tool
+                        name="Geometric Selection">
+                        - allows users to create a selection mask using various shapes
+                    </tool>
+                    <tool
+                        name="Freeform">
+                        - allows users to draw freeform selection masks
+                    </tool>
+                    <tool
+                        name="Polygon Freeform">
+                        - allows users to create a selection mask using straight-edged segments
+                    </tool>
+                    <tool
+                        name="Magic Wand Selection">
+                        - allows users to create a selection mask based on color similarity
+                    </tool>
+                </selection>
+                <painting>
+                    <concept>
+                        - use a brush tip to define affected area, generated mask defining
+                        the strength of the effect
+                        - brush tip follows cursor, visual feedback for size and shape
+                        - painting tools support various brush properties like size, hardness,
+                        opacity, and flow
+                        - painting tools support pressure sensitivity for touch and stylus input
+                    </concept>
+                    <tool
+                        name="brush">
+                        - applies paint to the layer based on the generated mask and color/texture
+                        settings
+                    </tool>
+                    <tool
+                        name="eraser">
+                        - removes pixels from the layer
+                    </tool>
+                    <tool name="Cloning Stamp">
+                        - allows users to sample pixels from one area of the image and paint them
+                        onto another area
+                    </tool>
+                </painting>
+                <text>
+                    <concept>
+                        - text tools support various font properties like size, weight, style, and
+                        alignment
+                        - supports graphic properties like color, stroke, shadow, and gradient
+                        - text layers can be transformed, styled, and formatted like other layers
+                        - text layers can be rasterized
+                    </concept>
+                    <tool
+                        name="Text">
+                        - allows users to create and edit text layers
+                        - provides a font selection menu
+                    </tool>
+                </text>
+            </tools>
+        </module>
+    </core-modules>
+    <GUI>
+        <ul>
+            <li>support light and dark mode from system settings</li>
+            <li>Main color palette: grayscales + 1 signature color for active elements etc. Make
+                suggestions for subtle extended accent colors</li>
+            <li>use svg icons rather than font-based, infer iconography from context, point put
+                missing icons</li>
+            <li>main command menus (edit, image settings etc) docked at top like in desktop app. you
+                may point out more modern approaches if there are.</li>
+        </ul>
+    </GUI>
+</application>
