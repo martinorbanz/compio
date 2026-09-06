@@ -1,7 +1,7 @@
 import type { AnyPlugin } from "@compio/domain-plugin-api";
-import { brightnessContrastEffect } from "./effects/brightness-contrast-effect";
+import { brightnessContrastEffect } from "./effects";
 
 export * from "./constants";
-export * from "./effects/brightness-contrast-effect";
+export * from "./effects";
 
 export const coreEffectPlugins: AnyPlugin[] = [brightnessContrastEffect];

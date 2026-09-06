@@ -1,4 +1,4 @@
-export * from "./canvas/canvas-like";
+export * from "./canvas";
 export * from "./render-composition";
 export * from "./schedule-render";
 export * from "./layer-bounds";
