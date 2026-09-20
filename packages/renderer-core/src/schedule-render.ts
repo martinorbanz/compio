@@ -1,10 +1,10 @@
 import type { Composition } from "@compio/domain-composition";
 import { RenderCompleteEvent, RenderRequestedEvent, renderEventHive } from "@compio/domain-events";
 import { type CanvasFactory, createDomCanvas } from "./canvas/canvas-like";
-import { renderComposition } from "./render-composition";
+import { renderComposition, type RenderPreviewOverride } from "./render-composition";
 
 export interface RenderScheduler {
-  requestRender: (composition: Composition) => void;
+  requestRender: (composition: Composition, previewOverride?: RenderPreviewOverride) => void;
   dispose: () => void;
 }
 
@@ -19,13 +19,17 @@ export const createRenderScheduler = (
 ): RenderScheduler => {
   let rafHandle: number | null = null;
   let pendingComposition: Composition | null = null;
+  let pendingPreviewOverride: RenderPreviewOverride | undefined;
 
   const flush = (): void => {
     rafHandle = null;
     if (!pendingComposition) return;
 
     const startedAt = performance.now();
-    const surface = renderComposition(pendingComposition, canvasFactory);
+    const surface = renderComposition(pendingComposition, {
+      canvasFactory,
+      previewOverride: pendingPreviewOverride,
+    });
     onRendered(surface);
 
     renderEventHive.dispatchEvent(
@@ -33,8 +37,15 @@ export const createRenderScheduler = (
     );
   };
 
-  const requestRender = (composition: Composition): void => {
+  const requestRender = (
+    composition: Composition,
+    previewOverride?: RenderPreviewOverride,
+  ): void => {
     pendingComposition = composition;
+    // Always overwritten, never merged — matches pendingComposition's own
+    // last-write-wins semantics, so a call with no override correctly clears
+    // a previously pending one instead of reusing it.
+    pendingPreviewOverride = previewOverride;
     renderEventHive.dispatchEvent(new RenderRequestedEvent({ composition }));
 
     if (rafHandle !== null) return;
@@ -45,6 +56,7 @@ export const createRenderScheduler = (
     if (rafHandle !== null) cancelAnimationFrame(rafHandle);
     rafHandle = null;
     pendingComposition = null;
+    pendingPreviewOverride = undefined;
   };
 
   return { requestRender, dispose };

@@ -11,11 +11,12 @@ export enum LayerKind {
   GROUP = "group",
 }
 
-export enum TextAlign {
-  LEFT = "left",
-  CENTER = "center",
-  RIGHT = "right",
-}
+export const TextAlign = {
+  LEFT: "left",
+  CENTER: "center",
+  RIGHT: "right",
+} as const;
+export type TextAlign = (typeof TextAlign)[keyof typeof TextAlign];
 
 export interface FontStyle {
   family: string;

@@ -70,6 +70,7 @@ export const CanvasViewport = ({
     beginHistoryTransaction,
     updateLayerTransform,
     updateLayerImage,
+    effectPreview,
   } = editor;
   const { zoom, setZoom } = viewportZoom;
 
@@ -100,8 +101,8 @@ export const CanvasViewport = ({
   }, []);
 
   useEffect(() => {
-    schedulerRef.current?.requestRender(composition);
-  }, [composition]);
+    schedulerRef.current?.requestRender(composition, effectPreview ?? undefined);
+  }, [composition, effectPreview]);
 
   useEffect(() => {
     if (fitToWindowRequestId === 0) return;
@@ -209,12 +210,8 @@ export const CanvasViewport = ({
       setLiveMarqueeRect(null);
     } else if (TRANSFORM_TOOLS.includes(activeToolName)) {
       // Note: this handler only ever fires when the click missed the
-      // TransformBoundingBox (its polygon covers the whole selected layer's
-      // bounds and claims the pointer first, by design — clicking anywhere
-      // inside a selection always means "grab it," matching Figma/Illustrator,
-      // even over that layer's own transparent pixels). So this click-to-select
-      // path is really "pick a *different* layer, or empty canvas" — it can't
-      // deselect by clicking through the current selection's own bounding box.
+      // TransformBoundingBox Clicking anywhere inside a selection always means "grab it",
+      // even over that layer's own transparent pixels.
       const upPoint = getCanvasPoint({
         event,
         element: event.currentTarget,

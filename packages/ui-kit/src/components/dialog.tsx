@@ -16,7 +16,8 @@ export interface DialogProps extends PropsWithChildren {
 export const Dialog = ({ open, onOpenChange, title, footer, children }: DialogProps): ReactNode => (
   <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
     <RadixDialog.Portal>
-      <RadixDialog.Overlay className="fixed inset-0 bg-black/40 dark:bg-black/60" />
+      {/* No dimming: effect dialogs need the canvas visible and true-color behind them for live preview to be trustworthy. The overlay element stays for Radix's click-outside/focus-trap behavior. */}
+      <RadixDialog.Overlay className="fixed inset-0" />
       <RadixDialog.Content
         className={
           "fixed left-1/2 top-1/2 w-80 -translate-x-1/2 -translate-y-1/2 rounded-lg border " +

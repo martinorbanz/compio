@@ -1,4 +1,5 @@
 import {
+  BlendMode,
   LayerKind,
   MASK_OPAQUE,
   type Composition,
@@ -25,7 +26,11 @@ type CanvasLikeResult = ReturnType<CanvasFactory>;
 const rawRasterSurfaceCache = new WeakMap<RasterImageSource, CanvasLikeResult>();
 /** Bridges our minimal CanvasLike port to the DOM's CanvasImageSource union for drawImage(). */
 const asImageSource = (surface: CanvasLikeResult): CanvasImageSource =>
-  surface as unknown as CanvasImageSource;
+  surface as HTMLCanvasElement;
+
+/** Canvas2D has no "normal" composite operation — its default/opaque blend is called "source-over". */
+const toCompositeOperation = (blendMode: BlendMode): GlobalCompositeOperation =>
+  blendMode === BlendMode.NORMAL ? "source-over" : blendMode;
 
 export interface ApplyMaskOptions {
   context: Canvas2DContext;
@@ -71,6 +76,12 @@ const getRawRasterSurface = (
   return surface;
 };
 
+/** Set when a preview override's image is a smaller proxy — tells drawLayer to stretch it up to the layer's real size via drawImage instead of upscaling it in JS first. */
+interface PreviewDisplaySize {
+  layerId: string;
+  displaySize: Size2D;
+}
+
 const drawRasterLayer = (layer: RasterLayer, canvasFactory: CanvasFactory): CanvasLikeResult => {
   const rawSurface = getRawRasterSurface(layer.image, canvasFactory);
   if (!layer.mask) return rawSurface;
@@ -104,7 +115,7 @@ const drawTextLayer = ({
   const { r, g, b, a } = layer.color;
   context.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
   context.font = `${layer.font.italic ? "italic " : ""}${layer.font.weight} ${layer.font.size}px ${layer.font.family}`;
-  context.textAlign = layer.align as unknown as CanvasTextAlign;
+  context.textAlign = layer.align;
   context.textBaseline = "top";
   context.fillText(layer.text, 0, 0);
 
@@ -117,6 +128,7 @@ export interface DrawLayerOptions {
   layersById: Map<string, Layer>;
   canvasSize: Size2D;
   canvasFactory: CanvasFactory;
+  previewDisplaySize?: PreviewDisplaySize;
 }
 
 const drawLayer = ({
@@ -125,12 +137,13 @@ const drawLayer = ({
   layersById,
   canvasSize,
   canvasFactory,
+  previewDisplaySize,
 }: DrawLayerOptions): void => {
   if (!layer.visible) return;
 
   context.save();
   context.globalAlpha = layer.opacity;
-  context.globalCompositeOperation = layer.blendMode as unknown as GlobalCompositeOperation;
+  context.globalCompositeOperation = toCompositeOperation(layer.blendMode);
   context.transform(
     layer.transform.a,
     layer.transform.b,
@@ -143,7 +156,23 @@ const drawLayer = ({
   switch (layer.kind) {
     case LayerKind.RASTER: {
       const surface = drawRasterLayer(layer, canvasFactory);
-      context.drawImage(asImageSource(surface), 0, 0);
+      const displaySize =
+        previewDisplaySize?.layerId === layer.id ? previewDisplaySize.displaySize : undefined;
+      if (displaySize) {
+        context.drawImage(
+          asImageSource(surface),
+          0,
+          0,
+          surface.width,
+          surface.height,
+          0,
+          0,
+          displaySize.width,
+          displaySize.height,
+        );
+      } else {
+        context.drawImage(asImageSource(surface), 0, 0);
+      }
       break;
     }
     case LayerKind.TEXT: {
@@ -152,7 +181,14 @@ const drawLayer = ({
       break;
     }
     case LayerKind.GROUP:
-      drawGroupChildren({ context, group: layer, layersById, canvasSize, canvasFactory });
+      drawGroupChildren({
+        context,
+        group: layer,
+        layersById,
+        canvasSize,
+        canvasFactory,
+        previewDisplaySize,
+      });
       break;
   }
 
@@ -165,6 +201,7 @@ export interface DrawGroupChildrenOptions {
   layersById: Map<string, Layer>;
   canvasSize: Size2D;
   canvasFactory: CanvasFactory;
+  previewDisplaySize?: PreviewDisplaySize;
 }
 
 const drawGroupChildren = ({
@@ -173,6 +210,7 @@ const drawGroupChildren = ({
   layersById,
   canvasSize,
   canvasFactory,
+  previewDisplaySize,
 }: DrawGroupChildrenOptions): void => {
   const children = group.childIds
     .map((childId) => layersById.get(childId))
@@ -180,7 +218,7 @@ const drawGroupChildren = ({
     .sort((first, second) => first.zIndex - second.zIndex);
 
   children.forEach((child) =>
-    drawLayer({ context, layer: child, layersById, canvasSize, canvasFactory }),
+    drawLayer({ context, layer: child, layersById, canvasSize, canvasFactory, previewDisplaySize }),
   );
 };
 
@@ -197,6 +235,62 @@ export const topLevelLayers = (composition: Composition): Layer[] => {
     .sort((first, second) => first.zIndex - second.zIndex);
 };
 
+export interface RenderPreviewOverride {
+  layerId: string;
+  image: RasterImageSource;
+}
+
+export interface ResolvedPreview {
+  composition: Composition;
+  previewDisplaySize?: PreviewDisplaySize;
+}
+
+/**
+ * Swaps a preview override's image into its layer for this render only —
+ * never mutates `composition`/`layer.image`, so canceling needs no restore.
+ * Also reports the layer's real size when the override is a smaller proxy,
+ * so drawLayer can stretch it back up instead of upscaling it in JS first.
+ */
+const resolveEffectiveComposition = (
+  composition: Composition,
+  previewOverride?: RenderPreviewOverride,
+): ResolvedPreview => {
+  if (!previewOverride) return { composition };
+
+  const targetLayer = composition.layers.find(
+    (layer): layer is RasterLayer =>
+      layer.kind === LayerKind.RASTER && layer.id === previewOverride.layerId,
+  );
+  if (!targetLayer) return { composition };
+
+  const effectiveComposition: Composition = {
+    ...composition,
+    layers: composition.layers.map((layer): Layer => {
+      if (layer.kind !== LayerKind.RASTER || layer.id !== previewOverride.layerId) return layer;
+      return { ...layer, image: previewOverride.image };
+    }),
+  };
+
+  // No stretch needed when the override is already the layer's real size.
+  const isDifferentResolution =
+    previewOverride.image.width !== targetLayer.image.width ||
+    previewOverride.image.height !== targetLayer.image.height;
+  if (!isDifferentResolution) return { composition: effectiveComposition };
+
+  return {
+    composition: effectiveComposition,
+    previewDisplaySize: {
+      layerId: previewOverride.layerId,
+      displaySize: { width: targetLayer.image.width, height: targetLayer.image.height },
+    },
+  };
+};
+
+export interface RenderCompositionOptions {
+  canvasFactory?: CanvasFactory;
+  previewOverride?: RenderPreviewOverride;
+}
+
 /**
  * Composites a Composition to a fresh CanvasLike surface via Canvas2D
  * globalCompositeOperation/globalAlpha/setTransform — no WebGL/3rd-party
@@ -206,15 +300,29 @@ export const topLevelLayers = (composition: Composition): Layer[] => {
  */
 export const renderComposition = (
   composition: Composition,
-  canvasFactory: CanvasFactory = createDomCanvas,
+  { canvasFactory = createDomCanvas, previewOverride }: RenderCompositionOptions = {},
 ): CanvasLikeResult => {
-  const output = canvasFactory(composition.canvasSize.width, composition.canvasSize.height);
+  const { composition: effectiveComposition, previewDisplaySize } = resolveEffectiveComposition(
+    composition,
+    previewOverride,
+  );
+  const output = canvasFactory(
+    effectiveComposition.canvasSize.width,
+    effectiveComposition.canvasSize.height,
+  );
   const context = output.getContext("2d");
   if (!context) throw new Error("2D context unavailable");
 
-  const layersById = new Map(composition.layers.map((layer) => [layer.id, layer]));
-  topLevelLayers(composition).forEach((layer) =>
-    drawLayer({ context, layer, layersById, canvasSize: composition.canvasSize, canvasFactory }),
+  const layersById = new Map(effectiveComposition.layers.map((layer) => [layer.id, layer]));
+  topLevelLayers(effectiveComposition).forEach((layer) =>
+    drawLayer({
+      context,
+      layer,
+      layersById,
+      canvasSize: effectiveComposition.canvasSize,
+      canvasFactory,
+      previewDisplaySize,
+    }),
   );
 
   return output;

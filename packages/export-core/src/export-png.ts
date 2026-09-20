@@ -28,7 +28,7 @@ export const exportCompositionAsPng = async ({
   filename = "compio-export.png",
   canvasFactory,
 }: ExportCompositionAsPngOptions): Promise<void> => {
-  const surface = renderComposition(composition, canvasFactory);
+  const surface = renderComposition(composition, { canvasFactory });
   const blob = await canvasToPngBlob(surface);
   downloadBlob(blob, filename);
 };

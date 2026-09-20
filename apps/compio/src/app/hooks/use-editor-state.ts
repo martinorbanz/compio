@@ -30,6 +30,7 @@ import {
   type ShapeRect,
   type TextToolParams,
 } from "@compio/plugins-tools-core";
+import type { RenderPreviewOverride } from "@compio/renderer-core";
 import { useCallback, useMemo, useState } from "react";
 import {
   DEFAULT_BRUSH_COLOR,
@@ -68,6 +69,13 @@ export const useEditorState = () => {
     color: DEFAULT_BRUSH_COLOR,
   });
   const [textColor, setTextColor] = useState<RGBAColor>(DEFAULT_TEXT_COLOR);
+  const [effectPreview, setEffectPreviewState] = useState<RenderPreviewOverride | null>(null);
+
+  const setEffectPreview = useCallback((override: RenderPreviewOverride) => {
+    setEffectPreviewState(override);
+  }, []);
+
+  const clearEffectPreview = useCallback(() => setEffectPreviewState(null), []);
 
   const loadComposition = useCallback(
     (next: Composition) => {
@@ -88,10 +96,12 @@ export const useEditorState = () => {
           transform: identityMatrix(),
           image,
         };
-        const next = addLayer(prev, layer);
+        const added = addLayer(prev, layer);
+        const next = setSelection(added, [layer.id]);
         compositionEventHive.dispatchEvent(
           new LayerAddedEvent({ layer: next.layers[next.layers.length - 1]! }),
         );
+        compositionEventHive.dispatchEvent(new SelectionChangedEvent({ layerIds: [layer.id] }));
         return next;
       });
     },
@@ -106,10 +116,12 @@ export const useEditorState = () => {
           params,
           context: { canvasSize: prev.canvasSize, imageSize: prev.imageSize },
         });
-        const next = addLayer(prev, layer);
+        const added = addLayer(prev, layer);
+        const next = setSelection(added, [layer.id]);
         compositionEventHive.dispatchEvent(
           new LayerAddedEvent({ layer: next.layers[next.layers.length - 1]! }),
         );
+        compositionEventHive.dispatchEvent(new SelectionChangedEvent({ layerIds: [layer.id] }));
         return next;
       });
     },
@@ -235,6 +247,9 @@ export const useEditorState = () => {
     setBrushSettings,
     textColor,
     setTextColor,
+    effectPreview,
+    setEffectPreview,
+    clearEffectPreview,
     selectedLayer,
     addRasterLayer,
     addTextLayer,

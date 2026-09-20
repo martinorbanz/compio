@@ -4,3 +4,4 @@ export * from "./schedule-render";
 export * from "./layer-bounds";
 export * from "./hit-test-layer";
 export * from "./coalesce-to-animation-frame";
+export * from "./resize-raster-image";
