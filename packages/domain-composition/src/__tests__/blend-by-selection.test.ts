@@ -136,9 +136,15 @@ describe("blendBySelection", () => {
         .fill(LIGHT_VALUE)
         .map((value, index) => ((index + 1) % 4 === 0 ? OPAQUE_ALPHA : value)),
     };
-    // Layer is scaled 2x, so local pixel (1, 1)'s center (1.5, 1.5) lands at
-    // canvas (3, 3) — select only that canvas pixel.
+    // Layer is scaled 2x, so local pixel (1, 1)'s footprint [1, 2) x [1, 2)
+    // maps to canvas footprint [2, 4) x [2, 4) — a 2x2 block. Supersampling
+    // averages several sub-pixel samples across that whole footprint, so it
+    // must be uniformly opaque, not just its (3, 3) corner, for the sampler
+    // to return an exact MASK_OPAQUE here.
     const maskData = new Uint8ClampedArray(CANVAS_SIZE * CANVAS_SIZE).fill(MASK_TRANSPARENT);
+    maskData[2 * CANVAS_SIZE + 2] = MASK_OPAQUE;
+    maskData[2 * CANVAS_SIZE + 3] = MASK_OPAQUE;
+    maskData[3 * CANVAS_SIZE + 2] = MASK_OPAQUE;
     maskData[3 * CANVAS_SIZE + 3] = MASK_OPAQUE;
     const selection: MaskChannel = { width: CANVAS_SIZE, height: CANVAS_SIZE, data: maskData };
 

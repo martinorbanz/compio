@@ -44,6 +44,23 @@ export const sampleMaskChannel = ({ mask, x, y }: SampleMaskChannelOptions): num
 /** Local-space pixel (x, y) sampled at its own center, not its corner — see createMaskSampler. */
 const PIXEL_CENTER_OFFSET = 0.5;
 
+/** Non-identity createMaskSampler only. 16 samples/pixel; cost multiplier on two hot per-pixel call sites (blendBySelection, brush stamps), so not denser than needed for a soft selection edge. */
+const SUPERSAMPLE_GRID_SIZE = 4;
+
+/** Cell centers of a SUPERSAMPLE_GRID_SIZE x SUPERSAMPLE_GRID_SIZE grid over the unit pixel, as (x, y) offsets in [0, 1). Module-level: computed once, not per sampler/sample. */
+const SUPERSAMPLE_OFFSETS: readonly Vector2[] = Array.from(
+  { length: SUPERSAMPLE_GRID_SIZE * SUPERSAMPLE_GRID_SIZE },
+  (_placeholder, sampleIndex) => {
+    const column = sampleIndex % SUPERSAMPLE_GRID_SIZE;
+    const row = Math.floor(sampleIndex / SUPERSAMPLE_GRID_SIZE);
+
+    return {
+      x: (column + PIXEL_CENTER_OFFSET) / SUPERSAMPLE_GRID_SIZE,
+      y: (row + PIXEL_CENTER_OFFSET) / SUPERSAMPLE_GRID_SIZE,
+    };
+  },
+);
+
 export interface CreateMaskSamplerOptions {
   mask: MaskChannel;
   /** `mask` lives in canvas space; this maps local-space sample points into it. */
@@ -58,6 +75,11 @@ export interface MaskSampler {
  * Local-space point -> canvas-space mask lookup (mirrors the canvas->local
  * inverse used for stroke points). Identity check happens once here, not
  * per sample — call once per operation, reuse the returned sampler per pixel.
+ * Non-identity branch: a transformed pixel's footprint can span several
+ * mask pixels, so it averages SUPERSAMPLE_OFFSETS sub-samples instead of
+ * one point — fixes stair-stepping on rotated/scaled selection edges.
+ * Identity branch stays a single point sample; rasterizeShape's own binary
+ * fill (no transform involved) is a separate, out-of-scope limitation.
  */
 export const createMaskSampler = ({
   mask,
@@ -68,12 +90,19 @@ export const createMaskSampler = ({
   }
 
   return ({ x, y }) => {
-    const canvasPoint = applyMatrixToPoint(layerTransform, {
-      x: x + PIXEL_CENTER_OFFSET,
-      y: y + PIXEL_CENTER_OFFSET,
-    });
+    const sampleTotal = SUPERSAMPLE_OFFSETS.reduce((total, offset) => {
+      const canvasPoint = applyMatrixToPoint(layerTransform, {
+        x: x + offset.x,
+        y: y + offset.y,
+      });
 
-    return sampleMaskChannel({ mask, x: Math.floor(canvasPoint.x), y: Math.floor(canvasPoint.y) });
+      return (
+        total +
+        sampleMaskChannel({ mask, x: Math.floor(canvasPoint.x), y: Math.floor(canvasPoint.y) })
+      );
+    }, 0);
+
+    return sampleTotal / SUPERSAMPLE_OFFSETS.length;
   };
 };
 
