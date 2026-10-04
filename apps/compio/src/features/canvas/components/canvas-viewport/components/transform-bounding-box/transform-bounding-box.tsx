@@ -10,6 +10,15 @@ import { getLayerLocalBounds } from "@compio/renderer-core";
 import { useRef, type PointerEvent as ReactPointerEvent, type ReactElement } from "react";
 import { getCanvasPoint } from "../../utils";
 import { useCoalescedCallback } from "./hooks";
+import {
+  EDGE_KIND,
+  EDGE_KINDS,
+  EDGE_OPPOSITE,
+  EDGE_SCALE_AXIS,
+  getEdgeMidpoints,
+  getTransformIcon,
+  type EdgeKind,
+} from "./utils";
 
 export interface TransformBoundingBoxProps {
   layer: Layer;
@@ -28,7 +37,13 @@ const HANDLE_RADIUS = 5;
 const ROTATE_HANDLE_OFFSET = 28;
 const STROKE_WIDTH = 1.5;
 
-type DragKind = "body" | "rotate" | 0 | 1 | 2 | 3;
+type DragKind = "body" | "rotate" | 0 | 1 | 2 | 3 | EdgeKind;
+
+const isEdgeKind = (kind: DragKind): kind is EdgeKind =>
+  kind === EDGE_KIND.TOP ||
+  kind === EDGE_KIND.RIGHT ||
+  kind === EDGE_KIND.BOTTOM ||
+  kind === EDGE_KIND.LEFT;
 
 interface DragState {
   kind: DragKind;
@@ -37,6 +52,10 @@ interface DragState {
   pivot: Vector2;
   startDistance: number;
   startAngle: number;
+  /** Edge handles only: opposite-edge midpoint in the layer's own pre-transform space. */
+  localPivot?: Vector2;
+  /** Edge handles only: unit vector from `pivot` toward the dragged edge, in world space. */
+  axisDirection?: Vector2;
 }
 
 export const TransformBoundingBox = ({
@@ -57,10 +76,9 @@ export const TransformBoundingBox = ({
   ];
   const worldCorners = localCorners.map((corner) => applyMatrixToPoint(layer.transform, corner));
   const center = applyMatrixToPoint(layer.transform, { x: width / 2, y: height / 2 });
-  const topMid = {
-    x: (worldCorners[0]!.x + worldCorners[1]!.x) / 2,
-    y: (worldCorners[0]!.y + worldCorners[1]!.y) / 2,
-  };
+  const worldEdgeMidpoints = getEdgeMidpoints(worldCorners);
+  const localEdgeMidpoints = getEdgeMidpoints(localCorners);
+  const topMid = worldEdgeMidpoints[EDGE_KIND.TOP];
   const upDirection = { x: topMid.x - center.x, y: topMid.y - center.y };
   const upLength = Math.hypot(upDirection.x, upDirection.y) || 1;
   const rotateHandle = {
@@ -93,6 +111,33 @@ export const TransformBoundingBox = ({
         pivot: center,
         startDistance: 0,
         startAngle: Math.atan2(point.y - center.y, point.x - center.x),
+      };
+      return;
+    }
+
+    if (isEdgeKind(kind)) {
+      const oppositeEdge = EDGE_OPPOSITE[kind];
+      const pivot = worldEdgeMidpoints[oppositeEdge];
+      const rawAxisDirection = {
+        x: worldEdgeMidpoints[kind].x - pivot.x,
+        y: worldEdgeMidpoints[kind].y - pivot.y,
+      };
+      const axisLength = Math.hypot(rawAxisDirection.x, rawAxisDirection.y) || 1;
+      const axisDirection = {
+        x: rawAxisDirection.x / axisLength,
+        y: rawAxisDirection.y / axisLength,
+      };
+      const startProjection =
+        (point.x - pivot.x) * axisDirection.x + (point.y - pivot.y) * axisDirection.y;
+      dragRef.current = {
+        kind,
+        startPoint: point,
+        startTransform: layer.transform,
+        pivot,
+        localPivot: localEdgeMidpoints[oppositeEdge],
+        axisDirection,
+        startDistance: Math.abs(startProjection) || 1,
+        startAngle: 0,
       };
       return;
     }
@@ -147,6 +192,23 @@ export const TransformBoundingBox = ({
         rotateTool.execute({
           input: { transform: drag.startTransform },
           params: { angleDeltaRadians, pivot: drag.pivot },
+          context: executionContext,
+        }),
+      );
+      return;
+    }
+
+    if (isEdgeKind(drag.kind)) {
+      const axisDirection = drag.axisDirection!;
+      const projection =
+        (point.x - drag.pivot.x) * axisDirection.x + (point.y - drag.pivot.y) * axisDirection.y;
+      const factor = Math.abs(projection) / drag.startDistance;
+      const scaleAxis = EDGE_SCALE_AXIS[drag.kind];
+      const scale = scaleAxis === "x" ? { x: factor, y: 1 } : { x: 1, y: factor };
+      onTransformChange(
+        scaleTool.execute({
+          input: { transform: drag.startTransform },
+          params: { scale, pivot: drag.localPivot!, pivotSpace: "local" },
           context: executionContext,
         }),
       );
@@ -228,12 +290,34 @@ export const TransformBoundingBox = ({
           fill="white"
           stroke="#3b82f6"
           strokeWidth={STROKE_WIDTH}
-          style={{ pointerEvents: "all", cursor: "nwse-resize" }}
+          style={{ pointerEvents: "all", cursor: getTransformIcon({ from: center, to: corner }) }}
           onPointerDown={handlePointerDown(cornerIndex as 0 | 1 | 2 | 3)}
           onPointerMove={handlePointerMove}
           onPointerUp={endDrag}
         />
       ))}
+      {EDGE_KINDS.map((edgeKind) => {
+        const midpoint = worldEdgeMidpoints[edgeKind];
+        return (
+          <rect
+            key={edgeKind}
+            x={midpoint.x - HANDLE_RADIUS}
+            y={midpoint.y - HANDLE_RADIUS}
+            width={HANDLE_RADIUS * 2}
+            height={HANDLE_RADIUS * 2}
+            fill="white"
+            stroke="#3b82f6"
+            strokeWidth={STROKE_WIDTH}
+            style={{
+              pointerEvents: "all",
+              cursor: getTransformIcon({ from: center, to: midpoint }),
+            }}
+            onPointerDown={handlePointerDown(edgeKind)}
+            onPointerMove={handlePointerMove}
+            onPointerUp={endDrag}
+          />
+        );
+      })}
     </svg>
   );
 };
