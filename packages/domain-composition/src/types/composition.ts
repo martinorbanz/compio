@@ -4,8 +4,8 @@ import type { Size2D } from "./vector2";
 export interface Composition {
   id: string;
   canvasSize: Size2D;
-  /** Output image size; independent of canvasSize so users can crop/resize the export target. */
-  imageSize: Size2D;
+  /** Print metadata (pixels/inch) only — doesn't affect canvasSize or rendering. */
+  resolution: number;
   layers: Layer[];
   selectedLayerIds: string[];
   createdAt: string;

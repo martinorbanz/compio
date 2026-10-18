@@ -3,30 +3,36 @@ import {
   baseLayerDefaults,
   createEmptyComposition,
   createId,
+  crop as cropOp,
   identityMatrix,
   LayerKind,
   removeLayer,
+  resizeCanvas as resizeCanvasOp,
+  resizeImage as resizeImageOp,
   setSelection,
   updateLayerTransform as updateLayerTransformOp,
   updateRasterLayerImage,
   type BlendMode,
+  type CanvasAnchor,
   type Composition,
   type MaskChannel,
   type Matrix2D,
   type RasterImageSource,
   type RGBAColor,
+  type Size2D,
 } from "@compio/domain-composition";
 import {
-  CompositionLoadedEvent,
+  CanvasResizedEvent,
   compositionEventHive,
+  CompositionLoadedEvent,
   LayerAddedEvent,
   LayerRemovedEvent,
   LayerTransformedEvent,
   SelectionChangedEvent,
 } from "@compio/domain-events";
 import {
-  TOOL_NAMES,
   textTool,
+  TOOL_NAMES,
   type ShapeRect,
   type TextToolParams,
 } from "@compio/plugins-tools-core";
@@ -114,7 +120,7 @@ export const useEditorState = () => {
         const layer = textTool.execute({
           input: undefined,
           params,
-          context: { canvasSize: prev.canvasSize, imageSize: prev.imageSize },
+          context: { canvasSize: prev.canvasSize },
         });
         const added = addLayer(prev, layer);
         const next = setSelection(added, [layer.id]);
@@ -230,6 +236,33 @@ export const useEditorState = () => {
     [history],
   );
 
+  const resizeImage = useCallback(
+    ({ size, resolution }: { size: Size2D; resolution: number }) => {
+      history.commit((prev) => ({ ...resizeImageOp({ composition: prev, size }), resolution }));
+      compositionEventHive.dispatchEvent(new CanvasResizedEvent({ canvasSize: size }));
+    },
+    [history],
+  );
+
+  const resizeCanvas = useCallback(
+    ({ size, anchor }: { size: Size2D; anchor: CanvasAnchor }) => {
+      history.commit((prev) => resizeCanvasOp({ composition: prev, size, anchor }));
+      compositionEventHive.dispatchEvent(new CanvasResizedEvent({ canvasSize: size }));
+    },
+    [history],
+  );
+
+  const cropToSelection = useCallback(() => {
+    const rect = selection.bounds;
+    if (!rect) return;
+
+    history.commit((prev) => cropOp({ composition: prev, rect }));
+    compositionEventHive.dispatchEvent(
+      new CanvasResizedEvent({ canvasSize: { width: rect.width, height: rect.height } }),
+    );
+    clearSelection();
+  }, [history, selection.bounds, clearSelection]);
+
   const selectedLayer = useMemo(
     () => composition.layers.find((layer) => layer.id === composition.selectedLayerIds[0]) ?? null,
     [composition],
@@ -266,6 +299,9 @@ export const useEditorState = () => {
     setLayerBlendMode,
     toggleLayerVisibility,
     toggleLayerLocked,
+    resizeImage,
+    resizeCanvas,
+    cropToSelection,
   };
 };
 

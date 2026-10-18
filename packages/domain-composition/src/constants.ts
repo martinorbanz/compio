@@ -1,4 +1,6 @@
 export const DEFAULT_OPACITY = 1;
+/** Screen-ppi convention for newly created compositions. */
+export const DEFAULT_RESOLUTION = 72;
 export const MIN_OPACITY = 0;
 export const MAX_OPACITY = 1;
 

@@ -1,6 +1,6 @@
 import { createEmptyComposition, createEmptyRaster } from "@compio/domain-composition";
-import { MenuName, PluginCategory, PluginTriggerType } from "@compio/domain-plugin-api";
 import { PluginRegisteredEvent, pluginEventHive } from "@compio/domain-events";
+import { MenuName, PluginCategory, PluginTriggerType } from "@compio/domain-plugin-api";
 import {
   exportCompositionAsJson,
   exportCompositionAsPng,
@@ -10,21 +10,21 @@ import { getPluginsByCategory } from "@compio/plugin-registry";
 import { MenuBar, type MenuBarMenu } from "@compio/ui-kit";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { DEFAULT_CANVAS_SIZE } from "../../../../app/constants";
+import { DIALOG_ID, useDialog } from "../../../../app/dialogs";
 import { DEFAULT_ZOOM, type EditorState, type ViewportZoomState } from "../../../../app/hooks";
 
 export interface AppMenuBarProps {
   editor: EditorState;
   viewportZoom: ViewportZoomState;
-  onOpenEffectDialog: (pluginName: string) => void;
   onFitToWindow: () => void;
 }
 
 export const AppMenuBar = ({
   editor,
   viewportZoom,
-  onOpenEffectDialog,
   onFitToWindow,
 }: AppMenuBarProps): ReactElement => {
+  const { openDialog } = useDialog();
   const [, forceRefresh] = useState(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
@@ -104,21 +104,30 @@ export const AppMenuBar = ({
     {
       id: MenuName.IMAGE_SETTINGS,
       label: "Image",
-      items:
-        imageEffectPlugins.length > 0
-          ? imageEffectPlugins.map((plugin) => ({
-              id: plugin.manifest.name,
-              label: plugin.manifest.name,
-              onSelect: () => onOpenEffectDialog(plugin.manifest.name),
-            }))
-          : [
-              {
-                id: "no-effects",
-                label: "No effects registered",
-                onSelect: () => undefined,
-                disabled: true,
-              },
-            ],
+      items: [
+        {
+          id: "resize-image",
+          label: "Resize Image…",
+          onSelect: () => openDialog({ id: DIALOG_ID.RESIZE_IMAGE }),
+        },
+        {
+          id: "resize-canvas",
+          label: "Resize Canvas…",
+          onSelect: () => openDialog({ id: DIALOG_ID.RESIZE_CANVAS }),
+        },
+        {
+          id: "crop-to-selection",
+          label: "Crop to Selection",
+          onSelect: editor.cropToSelection,
+          disabled: !editor.selection.bounds,
+        },
+        ...imageEffectPlugins.map((plugin) => ({
+          id: plugin.manifest.name,
+          label: plugin.manifest.name,
+          onSelect: () =>
+            openDialog({ id: DIALOG_ID.EFFECT, payload: { pluginName: plugin.manifest.name } }),
+        })),
+      ],
     },
     {
       id: MenuName.LAYER,

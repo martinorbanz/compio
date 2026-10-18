@@ -7,7 +7,7 @@ import {
 } from "@compio/domain-composition";
 import { moveTool, rotateTool, scaleTool } from "@compio/plugins-tools-core";
 import { getLayerLocalBounds } from "@compio/renderer-core";
-import { useRef, type PointerEvent as ReactPointerEvent, type ReactElement } from "react";
+import { useRef, type ReactElement, type PointerEvent as ReactPointerEvent } from "react";
 import { getCanvasPoint } from "../../utils";
 import { useCoalescedCallback } from "./hooks";
 import {
@@ -86,7 +86,7 @@ export const TransformBoundingBox = ({
     y: topMid.y + (upDirection.y / upLength) * ROTATE_HANDLE_OFFSET,
   };
 
-  const executionContext = { canvasSize: composition.canvasSize, imageSize: composition.imageSize };
+  const executionContext = { canvasSize: composition.canvasSize };
 
   const beginDrag = (kind: DragKind, point: Vector2): void => {
     onDragStart();
@@ -164,11 +164,7 @@ export const TransformBoundingBox = ({
       beginDrag(kind, getCanvasPoint({ event, element: svg, logicalSize: composition.canvasSize }));
     };
 
-  // The matrix math below doesn't need to run faster than the display can
-  // show it — coalescing to one call per frame keeps a high-poll-rate
-  // pointer from redundantly recomputing transforms that get superseded
-  // before the next paint anyway. Point is extracted synchronously in
-  // handlePointerMove below, not read from the (possibly deferred) event.
+  // Lock pointer event processing to paint calls
   const applyPointerMove = useCoalescedCallback((point: Vector2): void => {
     const drag = dragRef.current;
     if (!drag) return;

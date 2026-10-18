@@ -18,6 +18,9 @@
     "typecheck": {
       "outputs": []
     },
-    "test": {}
+    "test": {},
+    "format": {
+      "cache": false
+    }
   }
 }

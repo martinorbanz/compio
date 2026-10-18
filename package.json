@@ -13,7 +13,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write .",
+    "format": "turbo run format",
     "format:check": "prettier --check .",
     "dep-check": "depcruise apps packages --config .dependency-cruiser.cjs",
     "prepare": "husky"
@@ -26,6 +26,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
     "prettier": "^3.5.0",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "turbo": "^2.5.0",
     "typescript": "^5.7.0"
   },
@@ -33,7 +34,7 @@
     "*.{ts,tsx}": [
       "eslint --fix"
     ],
-    "*.{ts,tsx,md,json,css}": [
+    "*.{ts,tsx,json,css}": [
       "prettier --write"
     ]
   }

@@ -4,7 +4,6 @@ import type { PluginManifest } from "./plugin-manifest";
 /** Everything a plugin's execute() may read about the canvas but must not mutate directly. */
 export interface PluginExecutionContext {
   canvasSize: Size2D;
-  imageSize: Size2D;
   selection?: MaskChannel;
   /** The active layer's transform — `selection` is rasterized in canvas space, so sampling it against local-space pixels needs this. Defaults to identity when absent. */
   layerTransform?: Matrix2D;

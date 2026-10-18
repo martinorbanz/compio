@@ -1,13 +1,14 @@
 import { EventHive } from "event-hive";
 import {
+  CanvasResizedEvent,
   CompositionLoadedEvent,
   LayerAddedEvent,
   LayerRemovedEvent,
   LayerTransformedEvent,
   SelectionChangedEvent,
 } from "./events/composition-events";
-import { RenderCompleteEvent, RenderRequestedEvent } from "./events/render-events";
 import { PluginActivatedEvent, PluginRegisteredEvent } from "./events/plugin-events";
+import { RenderCompleteEvent, RenderRequestedEvent } from "./events/render-events";
 
 /**
  * One module-level EventHive singleton per domain, shared by every consumer
@@ -32,6 +33,7 @@ export const compositionEventHive = new EventHive({
     LayerRemovedEvent.type,
     SelectionChangedEvent.type,
     CompositionLoadedEvent.type,
+    CanvasResizedEvent.type,
   ],
 });
 

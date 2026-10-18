@@ -43,7 +43,6 @@ interface FakeParams {
 
 const FAKE_CONTEXT: PluginExecutionContext = {
   canvasSize: { width: 4, height: 4 },
-  imageSize: { width: 4, height: 4 },
 };
 
 const fakeLayer = (width = 4, height = 4): RasterLayer => ({

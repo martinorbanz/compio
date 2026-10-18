@@ -34,7 +34,7 @@ export const compositionFromJSON = async (
 ): Promise<Composition> => ({
   id: json.id,
   canvasSize: json.canvasSize,
-  imageSize: json.imageSize,
+  resolution: json.resolution,
   layers: await Promise.all(json.layers.map((layer) => decodeLayer(layer, codec))),
   selectedLayerIds: json.selectedLayerIds,
   createdAt: json.createdAt,

@@ -1,20 +1,17 @@
-import type { Vector2 } from "@compio/domain-composition";
 import { useEffect, useState, type ReactElement } from "react";
+import { DialogHost, DialogProvider } from "./app/dialogs";
 import { useEditorState, useViewportZoomState } from "./app/hooks";
 import { HOTKEYS } from "./app/utils";
 import { CanvasViewport } from "./features/canvas";
-import { BrightnessContrastDialog } from "./features/effects";
 import { LayersPanel } from "./features/layers-panel";
 import { AppMenuBar } from "./features/menu-bar";
-import { AppToolbar, TextEntryDialog, ToolOptionsPanel } from "./features/tools";
+import { AppToolbar, ToolOptionsPanel } from "./features/tools";
 
 export const App = (): ReactElement => {
   const editor = useEditorState();
   const { undo, redo } = editor;
   const viewportZoom = useViewportZoomState();
   const { zoomIn, zoomOut, resetZoom } = viewportZoom;
-  const [openEffectDialog, setOpenEffectDialog] = useState<string | null>(null);
-  const [textEntryPosition, setTextEntryPosition] = useState<Vector2 | null>(null);
   const [fitToWindowRequestId, setFitToWindowRequestId] = useState(0);
 
   useEffect(() => {
@@ -61,37 +58,28 @@ export const App = (): ReactElement => {
   }, [undo, redo, zoomIn, zoomOut, resetZoom]);
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      <AppMenuBar
-        editor={editor}
-        viewportZoom={viewportZoom}
-        onOpenEffectDialog={setOpenEffectDialog}
-        onFitToWindow={() => setFitToWindowRequestId((id) => id + 1)}
-      />
-      <div className="flex flex-1 overflow-hidden">
-        <AppToolbar editor={editor} />
-        <CanvasViewport
+    <DialogProvider>
+      <div className="flex h-full flex-col bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+        <AppMenuBar
           editor={editor}
           viewportZoom={viewportZoom}
-          fitToWindowRequestId={fitToWindowRequestId}
-          onTextToolClick={setTextEntryPosition}
+          onFitToWindow={() => setFitToWindowRequestId((id) => id + 1)}
         />
-        <div className="flex flex-col gap-2 border-l border-gray-200 dark:border-gray-800 p-2 overflow-auto">
-          <ToolOptionsPanel editor={editor} />
-          <LayersPanel editor={editor} />
+        <div className="flex flex-1 overflow-hidden">
+          <AppToolbar editor={editor} />
+          <CanvasViewport
+            editor={editor}
+            viewportZoom={viewportZoom}
+            fitToWindowRequestId={fitToWindowRequestId}
+          />
+          <div className="flex flex-col gap-2 border-l border-gray-200 dark:border-gray-800 p-2 overflow-auto">
+            <ToolOptionsPanel editor={editor} />
+            <LayersPanel editor={editor} />
+          </div>
         </div>
-      </div>
 
-      <BrightnessContrastDialog
-        editor={editor}
-        open={openEffectDialog !== null}
-        onClose={() => setOpenEffectDialog(null)}
-      />
-      <TextEntryDialog
-        editor={editor}
-        position={textEntryPosition}
-        onClose={() => setTextEntryPosition(null)}
-      />
-    </div>
+        <DialogHost editor={editor} />
+      </div>
+    </DialogProvider>
   );
 };

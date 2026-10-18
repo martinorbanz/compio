@@ -10,3 +10,5 @@ export interface Size2D {
 
 export const vector2 = (x: number, y: number): Vector2 => ({ x, y });
 export const size2D = (width: number, height: number): Size2D => ({ width, height });
+
+export type Rect2D = Vector2 & Size2D;

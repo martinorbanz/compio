@@ -1,0 +1,32 @@
+<selection>
+    <ul name="selection operations">
+        <li name="select all" type="command" trigger="main menu: select" interaction="none">
+            - selects the entire canvas
+        </li>
+        <li name="deselect" type="command" trigger="main menu: select" interaction="none">
+            - clears the current selection
+        </li>
+        <li name="invert selection" type="command" trigger="main menu: select" interaction="none">
+            - inverts the current selection
+        </li>
+        <li name="transform selection" type="tool" trigger="main menu: select" interaction="mouse/bounding box">
+            - allows the user to transform the current selection on the canvas
+        </li>
+        <li name="rectangle selection" type="tool" trigger="main toolbar: button" interaction="mouse">
+            - allows the user to make a rectangular selection on the canvas, already exists
+        </li>
+        <li name="ellipse selection" type="tool" trigger="main toolbar: button" interaction="mouse">
+            - allows the user to make an elliptical selection on the canvas
+        </li>
+        <li name="lasso selection" type="tool" trigger="main toolbar: button" interaction="mouse">
+            - allows the user to make a freeform selection on the canvas
+        </li>
+        <li name="polygon selection" type="tool" trigger="main toolbar: button" interaction="mouse">
+            - allows the user to make a polygonal selection on the canvas
+        </li>
+    </ul>
+    <concept>
+        The buttons for the select tools in the main toolbar should be flyout buttons, allowing the user to choose between rectangle, ellipse, lasso, and polygon selection tools from a single button.
+        The transform selection tool is listed to be considered in planning, but does not need to be realized in the first step. We can add it later, together with selection feathering.
+    </concept>
+</selection>

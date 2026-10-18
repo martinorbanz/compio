@@ -9,7 +9,6 @@ import { brightnessContrastEffect } from "../effects/brightness-contrast-effect"
 
 const executionContext = {
   canvasSize: { width: 1, height: 1 },
-  imageSize: { width: 1, height: 1 },
 };
 
 interface SolidPixelOptions {

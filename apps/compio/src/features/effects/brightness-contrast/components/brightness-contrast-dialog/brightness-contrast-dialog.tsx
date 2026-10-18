@@ -12,13 +12,11 @@ import { useEffectPreview } from "../../../hooks";
 
 export interface BrightnessContrastDialogProps {
   editor: EditorState;
-  open: boolean;
   onClose: () => void;
 }
 
 export const BrightnessContrastDialog = ({
   editor,
-  open,
   onClose,
 }: BrightnessContrastDialogProps): ReactElement => {
   const { selectedLayer, composition, selection } = editor;
@@ -32,7 +30,6 @@ export const BrightnessContrastDialog = ({
 
   const context: PluginExecutionContext = {
     canvasSize: composition.canvasSize,
-    imageSize: composition.imageSize,
     selection: selection.mask ?? undefined,
     layerTransform: selectedLayer?.transform,
   };
@@ -85,7 +82,7 @@ export const BrightnessContrastDialog = ({
 
   return (
     <Dialog
-      open={open}
+      open
       onOpenChange={(next) => !next && resetAndClose()}
       title="Brightness/Contrast"
       footer={

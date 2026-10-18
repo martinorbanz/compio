@@ -5,7 +5,6 @@ import {
   type Matrix2D,
   type Vector2,
 } from "@compio/domain-composition";
-import { createRenderScheduler, hitTestLayer, type RenderScheduler } from "@compio/renderer-core";
 import {
   brushTool,
   eraserTool,
@@ -13,13 +12,15 @@ import {
   TOOL_NAMES,
   type ShapeRect,
 } from "@compio/plugins-tools-core";
+import { createRenderScheduler, hitTestLayer, type RenderScheduler } from "@compio/renderer-core";
 import {
   useEffect,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
   type ReactElement,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
+import { DIALOG_ID, useDialog } from "../../../../app/dialogs";
 import type { EditorState, ViewportZoomState } from "../../../../app/hooks";
 import { TransformBoundingBox } from "./components/transform-bounding-box";
 import { getCanvasPoint, interpolatePoints, rectFromPoints } from "./utils";
@@ -50,14 +51,12 @@ export interface CanvasViewportProps {
   viewportZoom: ViewportZoomState;
   /** Incremented each time the user picks View > Fit to Window. */
   fitToWindowRequestId: number;
-  onTextToolClick: (point: Vector2) => void;
 }
 
 export const CanvasViewport = ({
   editor,
   viewportZoom,
   fitToWindowRequestId,
-  onTextToolClick,
 }: CanvasViewportProps): ReactElement => {
   const {
     composition,
@@ -81,6 +80,8 @@ export const CanvasViewport = ({
   const selectionDragRef = useRef<SelectionDragState | null>(null);
   const pointerDownPointRef = useRef<Vector2 | null>(null);
   const [liveMarqueeRect, setLiveMarqueeRect] = useState<ShapeRect | null>(null);
+
+  const { openDialog } = useDialog();
 
   useEffect(() => {
     schedulerRef.current = createRenderScheduler((surface) => {
@@ -123,7 +124,6 @@ export const CanvasViewport = ({
 
   const executionContext = {
     canvasSize: composition.canvasSize,
-    imageSize: composition.imageSize,
     selection: selection.mask ?? undefined,
     layerTransform: selectedLayer?.transform,
   };
@@ -156,7 +156,7 @@ export const CanvasViewport = ({
     pointerDownPointRef.current = point;
 
     if (activeToolName === TOOL_NAMES.TEXT) {
-      onTextToolClick(point);
+      openDialog({ id: DIALOG_ID.TEXT_ENTRY, payload: { position: point } });
       return;
     }
     if (activeToolName === TOOL_NAMES.GEOMETRIC_SELECTION) {

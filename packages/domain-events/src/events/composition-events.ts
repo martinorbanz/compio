@@ -1,4 +1,4 @@
-import type { Composition, Layer, Matrix2D } from "@compio/domain-composition";
+import type { Composition, Layer, Matrix2D, Size2D } from "@compio/domain-composition";
 import { Event } from "event-hive";
 
 export interface LayerAddedPayload {
@@ -39,6 +39,16 @@ export class SelectionChangedEvent extends Event<SelectionChangedPayload> {
   static readonly type = "composition/selection-changed";
   constructor(payload: SelectionChangedPayload) {
     super(SelectionChangedEvent.type, payload);
+  }
+}
+
+export interface CanvasResizedPayload {
+  canvasSize: Size2D;
+}
+export class CanvasResizedEvent extends Event<CanvasResizedPayload> {
+  static readonly type = "composition/canvas-resized";
+  constructor(payload: CanvasResizedPayload) {
+    super(CanvasResizedEvent.type, payload);
   }
 }
 

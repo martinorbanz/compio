@@ -15,7 +15,6 @@ describe("moveTool", () => {
       params: { delta: { x: 5, y: -3 } },
       context: {
         canvasSize: { width: 100, height: 100 },
-        imageSize: { width: 100, height: 100 },
       },
     });
     expect(applyMatrixToPoint(result, { x: 0, y: 0 })).toEqual({ x: 5, y: -3 });
@@ -25,7 +24,6 @@ describe("moveTool", () => {
 describe("geometricSelectionTool", () => {
   const executionContext = {
     canvasSize: { width: 4, height: 4 },
-    imageSize: { width: 4, height: 4 },
   };
 
   it("rasterizes a rectangle into an opaque mask region", () => {

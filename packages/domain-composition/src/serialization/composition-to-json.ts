@@ -1,5 +1,5 @@
-import { LayerKind, type Layer } from "../types/layer";
 import type { Composition } from "../types/composition";
+import { LayerKind, type Layer } from "../types/layer";
 import type { MaskChannel } from "../types/mask-channel";
 import { bytesToBase64 } from "../utils/base64";
 import type { CompositionJSON, LayerJSON, MaskChannelJSON } from "./composition-json";
@@ -35,10 +35,10 @@ export const compositionToJSON = (
   composition: Composition,
   codec: RasterCodec = rawRasterCodec,
 ): CompositionJSON => ({
-  formatVersion: 1,
+  formatVersion: 2,
   id: composition.id,
   canvasSize: composition.canvasSize,
-  imageSize: composition.imageSize,
+  resolution: composition.resolution,
   layers: composition.layers.map((layer) => encodeLayer(layer, codec)),
   selectedLayerIds: composition.selectedLayerIds,
   createdAt: composition.createdAt,

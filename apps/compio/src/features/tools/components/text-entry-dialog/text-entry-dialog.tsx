@@ -7,7 +7,7 @@ const DEFAULT_TEXT_FONT = { family: "sans-serif", size: 32, weight: 400, italic:
 
 export interface TextEntryDialogProps {
   editor: EditorState;
-  position: Vector2 | null;
+  position: Vector2;
   onClose: () => void;
 }
 
@@ -19,7 +19,7 @@ export const TextEntryDialog = ({
   const [text, setText] = useState("");
 
   const handleAdd = (): void => {
-    if (!position || !text.trim()) return;
+    if (!text.trim()) return;
     editor.addTextLayer({
       text,
       font: DEFAULT_TEXT_FONT,
@@ -33,7 +33,7 @@ export const TextEntryDialog = ({
 
   return (
     <Dialog
-      open={position !== null}
+      open
       onOpenChange={(next) => !next && onClose()}
       title="Add Text"
       footer={

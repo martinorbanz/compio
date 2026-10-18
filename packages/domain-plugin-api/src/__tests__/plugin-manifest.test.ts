@@ -34,7 +34,7 @@ describe("Plugin contract", () => {
       plugin.execute({
         input: 42,
         params: undefined,
-        context: { canvasSize: { width: 1, height: 1 }, imageSize: { width: 1, height: 1 } },
+        context: { canvasSize: { width: 1, height: 1 } },
       }),
     ).toBe(42);
   });

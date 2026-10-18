@@ -45,10 +45,10 @@ export type LayerJSON = RasterLayerJSON | TextLayerJSON | GroupLayerJSON;
 
 /** The `.compio.json` file format — self-contained, no backend required. */
 export interface CompositionJSON {
-  formatVersion: 1;
+  formatVersion: 2;
   id: string;
   canvasSize: Size2D;
-  imageSize: Size2D;
+  resolution: number;
   layers: LayerJSON[];
   selectedLayerIds: string[];
   createdAt: string;
